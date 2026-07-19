@@ -1,0 +1,1322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PROTOTYPE — Birdwatching two-screen story</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        --ink: #17231c;
+        --muted: #68726b;
+        --paper: #f7f4ea;
+        --card: #fffef9;
+        --green: #1d5b3e;
+        --lime: #d8f07a;
+        --blue: #214ec9;
+        --line: rgba(23, 35, 28, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: #d8dcd7;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 20% 10%, #f3f6ec 0, transparent 32rem),
+          #d8dcd7;
+      }
+
+      button {
+        color: inherit;
+        font: inherit;
+      }
+
+      .prototype-shell {
+        width: min(100%, 460px);
+        min-height: 100dvh;
+        margin: 0 auto;
+        background: var(--paper);
+        box-shadow: 0 0 50px rgba(14, 25, 17, 0.16);
+        overflow: hidden;
+        padding-bottom: 112px;
+      }
+
+      .screen {
+        min-height: calc(100dvh - 112px);
+      }
+
+      .tap {
+        cursor: pointer;
+      }
+
+      .icon-button,
+      .primary-button,
+      .chip-button,
+      .text-button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .icon-button {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.82);
+      }
+
+      .primary-button {
+        padding: 12px 17px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: white;
+        font-weight: 760;
+      }
+
+      .chip-button {
+        padding: 9px 13px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: white;
+        font-weight: 680;
+      }
+
+      .text-button {
+        padding: 7px 0;
+        background: none;
+        font-weight: 760;
+      }
+
+      .avatar {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: #214ec9;
+        color: white;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .eyebrow {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .user-row {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+
+      .user-copy {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .user-copy strong,
+      .user-copy small {
+        display: block;
+      }
+
+      .user-copy strong {
+        font-size: 14px;
+      }
+
+      .user-copy small {
+        margin-top: 3px;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .action-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 1px solid var(--line);
+      }
+
+      .action-row button {
+        padding: 13px 6px;
+        border: 0;
+        background: transparent;
+        font-size: 13px;
+        font-weight: 720;
+        cursor: pointer;
+      }
+
+      .action-row button + button {
+        border-left: 1px solid var(--line);
+      }
+
+      .action-row button.is-liked {
+        color: #d13d68;
+      }
+
+      .map {
+        position: relative;
+        min-height: 174px;
+        overflow: hidden;
+        border-radius: 24px;
+        background:
+          linear-gradient(32deg, transparent 45%, #bed6a8 45% 51%, transparent 51%),
+          linear-gradient(138deg, transparent 42%, #bbd4a4 42% 48%, transparent 48%),
+          linear-gradient(90deg, transparent 18%, #a5c8df 18% 22%, transparent 22%),
+          #e5efd5;
+      }
+
+      .map::before,
+      .map::after {
+        position: absolute;
+        content: "";
+        border-radius: 999px;
+      }
+
+      .map::before {
+        inset: 48% auto auto 56%;
+        width: 20px;
+        height: 20px;
+        border: 6px solid white;
+        background: #e7443d;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.25);
+      }
+
+      .map::after {
+        inset: 0;
+        border: 1px solid rgba(29, 91, 62, 0.12);
+      }
+
+      .map-label {
+        position: absolute;
+        right: 14px;
+        bottom: 14px;
+        left: 14px;
+        padding: 10px 12px;
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.92);
+        font-size: 12px;
+        font-weight: 740;
+        box-shadow: 0 6px 18px rgba(40, 64, 45, 0.15);
+      }
+
+      .prototype-switcher {
+        position: fixed;
+        z-index: 50;
+        right: 50%;
+        bottom: 18px;
+        display: grid;
+        width: min(calc(100% - 28px), 430px);
+        grid-template-columns: 44px 1fr 44px;
+        align-items: center;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        background: rgba(13, 20, 16, 0.94);
+        color: white;
+        box-shadow: 0 16px 42px rgba(0, 0, 0, 0.34);
+        transform: translateX(50%);
+        backdrop-filter: blur(12px);
+      }
+
+      .prototype-switcher button {
+        height: 62px;
+        border: 0;
+        background: transparent;
+        color: white;
+        font-size: 22px;
+        cursor: pointer;
+      }
+
+      .switcher-copy {
+        min-width: 0;
+        text-align: center;
+      }
+
+      .switcher-copy strong,
+      .switcher-copy small {
+        display: block;
+      }
+
+      .switcher-copy strong {
+        overflow: hidden;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .switcher-copy small {
+        margin-top: 4px;
+        color: #aebbb2;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 10px;
+      }
+
+      .toast {
+        position: fixed;
+        z-index: 60;
+        top: 18px;
+        right: 50%;
+        padding: 11px 15px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: white;
+        font-size: 12px;
+        font-weight: 720;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transform: translateX(50%);
+        animation: toast 1.8s both;
+      }
+
+      @keyframes toast {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate(50%, -10px);
+        }
+        12%,
+        82% {
+          opacity: 1;
+          transform: translate(50%, 0);
+        }
+      }
+
+      /* Variant A — Field journal */
+      .field-screen {
+        background:
+          radial-gradient(#d4d3c8 0.7px, transparent 0.7px) 0 0 / 15px 15px,
+          #fbfaf5;
+      }
+
+      .field-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 20px 15px;
+      }
+
+      .field-brand {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 27px;
+        font-style: italic;
+        font-weight: 700;
+      }
+
+      .field-intro {
+        padding: 24px 20px 16px;
+      }
+
+      .field-intro h1 {
+        max-width: 330px;
+        margin: 5px 0 7px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 38px;
+        font-weight: 500;
+        letter-spacing: -0.035em;
+        line-height: 0.98;
+      }
+
+      .field-intro p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .field-card {
+        margin: 8px 14px 22px;
+        overflow: hidden;
+        border: 1px solid rgba(23, 35, 28, 0.1);
+        border-radius: 30px;
+        background: rgba(255, 254, 249, 0.97);
+        box-shadow: 0 16px 34px rgba(34, 48, 39, 0.1);
+      }
+
+      .field-card .user-row {
+        padding: 15px 17px 13px;
+      }
+
+      .field-photo {
+        position: relative;
+        height: 390px;
+        overflow: hidden;
+        background: #dfe7d6;
+      }
+
+      .field-photo .original {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .field-photo .sticker {
+        position: absolute;
+        right: -13px;
+        bottom: -25px;
+        width: 45%;
+        height: 63%;
+        object-fit: contain;
+        filter: drop-shadow(0 12px 18px rgba(11, 28, 18, 0.2));
+        transform: rotate(5deg);
+      }
+
+      .field-photo::after {
+        position: absolute;
+        right: 14px;
+        top: 14px;
+        padding: 8px 11px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.88);
+        content: "AI identified · high";
+        font-size: 10px;
+        font-weight: 800;
+        backdrop-filter: blur(6px);
+      }
+
+      .field-card-copy {
+        padding: 19px 18px 17px;
+      }
+
+      .field-card-copy h2 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 31px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+      }
+
+      .field-card-copy h2 span {
+        color: var(--blue);
+        font-style: italic;
+      }
+
+      .field-card-copy p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .field-peek {
+        margin: 0 18px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: #eef2df;
+      }
+
+      .field-peek strong,
+      .field-peek small {
+        display: block;
+      }
+
+      .field-peek small {
+        margin-top: 4px;
+        color: var(--muted);
+      }
+
+      .field-detail-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 18px 0;
+      }
+
+      .field-hero {
+        position: relative;
+        display: grid;
+        min-height: 408px;
+        margin: 14px;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 34px;
+        background:
+          radial-gradient(#c9cdc4 0.9px, transparent 0.9px) 0 0 / 13px 13px,
+          white;
+      }
+
+      .field-hero img {
+        width: 67%;
+        height: 82%;
+        object-fit: contain;
+        filter: drop-shadow(0 20px 28px rgba(18, 32, 23, 0.16));
+      }
+
+      .name-tag {
+        position: absolute;
+        right: 18px;
+        bottom: 17px;
+        left: 18px;
+        padding: 13px 16px;
+        border-radius: 17px;
+        background: rgba(247, 244, 234, 0.94);
+        text-align: center;
+        font-size: 14px;
+        font-weight: 800;
+        box-shadow: 0 9px 24px rgba(30, 42, 34, 0.13);
+      }
+
+      .field-detail-copy {
+        padding: 12px 22px 24px;
+      }
+
+      .field-detail-copy h1 {
+        margin: 5px 0 5px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 43px;
+        font-weight: 500;
+        letter-spacing: -0.045em;
+        line-height: 0.95;
+      }
+
+      .scientific {
+        color: var(--muted);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 14px;
+        font-style: italic;
+      }
+
+      .description {
+        margin: 18px 0;
+        color: #3b463f;
+        font-size: 15px;
+        line-height: 1.62;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+        margin: 19px 0;
+      }
+
+      .meta-grid div {
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .meta-grid small,
+      .meta-grid strong {
+        display: block;
+      }
+
+      .meta-grid small {
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .meta-grid strong {
+        font-size: 12px;
+        line-height: 1.3;
+      }
+
+      /* Variant B — Split specimen */
+      .split-screen {
+        background: #f1efe8;
+      }
+
+      .split-header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        padding: 23px 18px 15px;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .split-header h1 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 34px;
+        font-weight: 500;
+      }
+
+      .split-header small {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .split-upload {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 18px;
+        padding: 15px 16px;
+        border: 1px solid var(--ink);
+        border-radius: 4px;
+        background: var(--lime);
+        font-weight: 820;
+      }
+
+      .split-card {
+        margin: 0 12px 22px;
+        border: 2px solid var(--ink);
+        background: white;
+        box-shadow: 8px 8px 0 var(--ink);
+      }
+
+      .split-user {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 2px solid var(--ink);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .split-visual {
+        display: grid;
+        height: 330px;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .split-visual > div {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .split-visual > div + div {
+        border-left: 2px solid var(--ink);
+      }
+
+      .split-visual img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .split-visual .cutout-image {
+        object-fit: contain;
+        background:
+          radial-gradient(#c4c4c4 0.7px, transparent 0.7px) 0 0 / 12px 12px,
+          white;
+      }
+
+      .split-label {
+        position: absolute;
+        top: 9px;
+        left: 9px;
+        padding: 5px 7px;
+        border: 1px solid var(--ink);
+        background: white;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .split-copy {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding: 15px;
+        border-top: 2px solid var(--ink);
+      }
+
+      .split-copy h2 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 30px;
+        font-weight: 500;
+        line-height: 0.95;
+      }
+
+      .split-copy p {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .split-count {
+        display: grid;
+        width: 58px;
+        height: 58px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--ink);
+        color: white;
+        font-weight: 850;
+      }
+
+      .split-detail-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 17px;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .split-specimen {
+        display: grid;
+        min-height: 430px;
+        place-items: center;
+        border-bottom: 2px solid var(--ink);
+        background:
+          linear-gradient(90deg, transparent 49.7%, rgba(23, 35, 28, 0.18) 50%, transparent 50.3%),
+          linear-gradient(transparent 49.7%, rgba(23, 35, 28, 0.18) 50%, transparent 50.3%),
+          white;
+      }
+
+      .split-specimen img {
+        width: 64%;
+        height: 390px;
+        object-fit: contain;
+      }
+
+      .split-title {
+        padding: 20px 18px;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .split-title h1 {
+        margin: 4px 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 46px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        line-height: 0.94;
+      }
+
+      .split-facts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .split-facts > div {
+        padding: 15px;
+      }
+
+      .split-facts > div + div {
+        border-left: 2px solid var(--ink);
+      }
+
+      .split-facts small,
+      .split-facts strong {
+        display: block;
+      }
+
+      .split-facts small {
+        margin-bottom: 6px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 9px;
+        text-transform: uppercase;
+      }
+
+      .split-body {
+        padding: 18px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .split-map {
+        margin: 0 14px 22px;
+        border: 2px solid var(--ink);
+        border-radius: 0;
+      }
+
+      /* Variant C — Activity first */
+      .activity-screen {
+        background: #f6f7f5;
+      }
+
+      .activity-header {
+        position: sticky;
+        z-index: 4;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 17px 17px 14px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(246, 247, 245, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      .activity-brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 20px;
+        font-weight: 880;
+      }
+
+      .activity-brand span:first-child {
+        display: grid;
+        width: 31px;
+        height: 31px;
+        place-items: center;
+        border-radius: 9px;
+        background: #ff5b35;
+        color: white;
+      }
+
+      .activity-filter {
+        display: flex;
+        gap: 8px;
+        padding: 15px 15px 4px;
+        overflow-x: auto;
+      }
+
+      .activity-filter button {
+        flex: 0 0 auto;
+      }
+
+      .activity-card {
+        margin: 13px 11px 20px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 19px;
+        background: white;
+        box-shadow: 0 7px 22px rgba(27, 39, 31, 0.08);
+      }
+
+      .activity-card .user-row {
+        padding: 14px 14px 12px;
+      }
+
+      .activity-summary {
+        padding: 0 14px 13px;
+      }
+
+      .activity-summary h2 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: -0.02em;
+      }
+
+      .activity-summary p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .activity-visual {
+        position: relative;
+        height: 344px;
+        background: #dce5d5;
+      }
+
+      .activity-visual .original {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .activity-cutout-disc {
+        position: absolute;
+        right: 13px;
+        bottom: 13px;
+        display: grid;
+        width: 128px;
+        height: 128px;
+        place-items: center;
+        overflow: hidden;
+        border: 6px solid white;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+      }
+
+      .activity-cutout-disc img {
+        width: 82%;
+        height: 105%;
+        object-fit: contain;
+      }
+
+      .activity-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 14px;
+        background: #f1f5ec;
+      }
+
+      .activity-stats div {
+        text-align: center;
+      }
+
+      .activity-stats small,
+      .activity-stats strong {
+        display: block;
+      }
+
+      .activity-stats small {
+        margin-bottom: 3px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      .activity-stats strong {
+        font-size: 13px;
+      }
+
+      .activity-detail-top {
+        position: absolute;
+        z-index: 5;
+        top: 15px;
+        right: 15px;
+        left: 15px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .activity-detail-map {
+        min-height: 330px;
+        border-radius: 0 0 32px 32px;
+      }
+
+      .activity-detail-map::before {
+        inset: 42% auto auto 48%;
+        width: 72px;
+        height: 72px;
+        border: 7px solid white;
+        background-image: url("./assets/taiwan-blue-magpie-cutout.png");
+        background-position: center;
+        background-size: 78%;
+        background-color: white;
+        background-repeat: no-repeat;
+      }
+
+      .activity-detail-map .map-label {
+        right: 18px;
+        bottom: 20px;
+        left: 18px;
+      }
+
+      .activity-detail-card {
+        position: relative;
+        z-index: 2;
+        margin: -18px 13px 18px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 25px;
+        background: white;
+        box-shadow: 0 12px 30px rgba(27, 39, 31, 0.12);
+      }
+
+      .activity-detail-intro {
+        padding: 20px;
+      }
+
+      .activity-detail-intro h1 {
+        margin: 3px 0;
+        font-size: 34px;
+        letter-spacing: -0.04em;
+      }
+
+      .activity-nickname {
+        display: inline-flex;
+        margin-top: 9px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: #e9edff;
+        color: #214ec9;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .activity-detail-grid {
+        display: grid;
+        grid-template-columns: 1.3fr 0.7fr;
+        min-height: 290px;
+        border-top: 1px solid var(--line);
+      }
+
+      .activity-detail-grid .photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .activity-detail-grid .sticker-panel {
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(#d0d3cf 0.8px, transparent 0.8px) 0 0 / 12px 12px,
+          white;
+      }
+
+      .activity-detail-grid .sticker-panel img {
+        width: 86%;
+        height: 84%;
+        object-fit: contain;
+      }
+
+      .activity-description {
+        padding: 3px 20px 20px;
+        color: #3f4943;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      @media (min-width: 700px) {
+        body {
+          padding: 28px 0;
+        }
+
+        .prototype-shell {
+          min-height: calc(100dvh - 56px);
+          border-radius: 34px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      const variants = {
+        A: "Field journal",
+        B: "Split specimen",
+        C: "Activity first",
+      };
+
+      const params = new URLSearchParams(window.location.search);
+      let variant = variants[params.get("variant")] ? params.get("variant") : "A";
+      let screen = params.get("screen") === "detail" ? "detail" : "feed";
+      let liked = false;
+
+      const original = "./assets/taiwan-blue-magpie-original.png";
+      const cutout = "./assets/taiwan-blue-magpie-cutout.png";
+
+      function userRow(extra = "") {
+        return `
+          <div class="user-row ${extra}">
+            <span class="avatar">ML</span>
+            <span class="user-copy">
+              <strong>Mei Lin</strong>
+              <small>${screen === "feed" ? "Shared 8 minutes ago" : "Observed today · 9:42 AM"}</small>
+            </span>
+            <button class="text-button" data-toast="Following Mei">Following</button>
+          </div>
+        `;
+      }
+
+      function actions() {
+        return `
+          <div class="action-row">
+            <button class="${liked ? "is-liked" : ""}" data-action="like">${liked ? "♥ 25" : "♡ 24"}</button>
+            <button data-toast="Comments are a demo interaction">◌ 3 comments</button>
+            <button data-toast="Share link copied">↗ Share</button>
+          </div>
+        `;
+      }
+
+      function mapBlock(extra = "") {
+        return `
+          <div class="map ${extra}">
+            <div class="map-label">Yangmingshan National Park · observed 9:42 AM</div>
+          </div>
+        `;
+      }
+
+      function fieldFeed() {
+        return `
+          <div class="screen field-screen">
+            <header class="field-header">
+              <div>
+                <div class="eyebrow">Community</div>
+                <div class="field-brand">Flock</div>
+              </div>
+              <button class="primary-button" data-toast="Upload opens the capture flow">＋ Sighting</button>
+            </header>
+            <section class="field-intro">
+              <div class="eyebrow">Sunday in Taipei</div>
+              <h1>What the flock found today.</h1>
+              <p>Fresh encounters from birdwatchers nearby.</p>
+            </section>
+            <article class="field-card">
+              ${userRow()}
+              <div class="field-photo tap" data-screen="detail">
+                <img class="original" src="${original}" alt="Taiwan Blue Magpie in a forest" />
+                <img class="sticker" src="${cutout}" alt="" />
+              </div>
+              <div class="field-card-copy tap" data-screen="detail">
+                <div class="eyebrow">Taiwan Blue Magpie · high confidence</div>
+                <h2>Meet <span>Blueberry.</span></h2>
+                <p>Yangmingshan National Park · observed today at 9:42 AM</p>
+              </div>
+              ${actions()}
+            </article>
+            <div class="field-peek">
+              <strong>Alex spotted a Crested Serpent Eagle</strong>
+              <small>18 minutes ago · Maokong</small>
+            </div>
+          </div>
+        `;
+      }
+
+      function fieldDetail() {
+        return `
+          <div class="screen field-screen">
+            <header class="field-detail-header">
+              <button class="icon-button" data-screen="feed" aria-label="Back">←</button>
+              <div class="eyebrow">Sighting Detail</div>
+              <button class="icon-button" data-toast="Share link copied" aria-label="Share">↗</button>
+            </header>
+            <div class="field-hero">
+              <img src="${cutout}" alt="Sticker cutout of a Taiwan Blue Magpie" />
+              <button class="name-tag" data-toast="Nickname editor">✎ Blueberry</button>
+            </div>
+            <section class="field-detail-copy">
+              <div class="eyebrow">High-confidence identification</div>
+              <h1>Taiwan Blue Magpie</h1>
+              <div class="scientific">Urocissa caerulea</div>
+              <p class="description">A striking, long-tailed corvid found only in Taiwan, often moving through wooded areas in lively family groups.</p>
+              <div class="meta-grid">
+                <div><small>Observed</small><strong>Today, 9:42 AM</strong></div>
+                <div><small>By</small><strong>Mei Lin</strong></div>
+              </div>
+              ${mapBlock()}
+            </section>
+          </div>
+        `;
+      }
+
+      function splitFeed() {
+        return `
+          <div class="screen split-screen">
+            <header class="split-header">
+              <div>
+                <div class="eyebrow">Issue 07 · Taipei</div>
+                <h1>Field Notes</h1>
+              </div>
+              <small>19.07.26</small>
+            </header>
+            <button class="split-upload" data-toast="Upload opens the capture flow">
+              <span>Document a bird</span><span>＋</span>
+            </button>
+            <article class="split-card tap" data-screen="detail">
+              <div class="split-user">
+                <span>MEI LIN / 8 MIN AGO</span>
+                <span>YMSNP ↗</span>
+              </div>
+              <div class="split-visual">
+                <div>
+                  <span class="split-label">Original</span>
+                  <img src="${original}" alt="Taiwan Blue Magpie in a forest" />
+                </div>
+                <div>
+                  <span class="split-label">Isolated</span>
+                  <img class="cutout-image" src="${cutout}" alt="Isolated Taiwan Blue Magpie" />
+                </div>
+              </div>
+              <div class="split-copy">
+                <div>
+                  <div class="eyebrow">Taiwan Blue Magpie</div>
+                  <h2>“Blueberry”</h2>
+                  <p>Observed 09:42 · Yangmingshan</p>
+                </div>
+                <span class="split-count">24♡</span>
+              </div>
+            </article>
+            <div style="margin: 0 14px; font-family: Georgia, serif; font-size: 19px;">
+              “The feed feels like a shared field journal, one specimen at a time.”
+            </div>
+          </div>
+        `;
+      }
+
+      function splitDetail() {
+        return `
+          <div class="screen split-screen">
+            <header class="split-detail-top">
+              <button class="text-button" data-screen="feed">← Community Feed</button>
+              <button class="text-button" data-toast="Share link copied">Share ↗</button>
+            </header>
+            <div class="split-specimen">
+              <img src="${cutout}" alt="Sticker cutout of a Taiwan Blue Magpie" />
+            </div>
+            <section class="split-title">
+              <div class="eyebrow">Specimen 001 · high confidence</div>
+              <h1>Taiwan Blue<br />Magpie</h1>
+              <div class="scientific">Urocissa caerulea · “Blueberry”</div>
+            </section>
+            <div class="split-facts">
+              <div><small>Observed</small><strong>19 Jul 2026<br />09:42</strong></div>
+              <div><small>Contributor</small><strong>Mei Lin<br />Taipei</strong></div>
+            </div>
+            <p class="split-body">A striking, long-tailed corvid found only in Taiwan, often moving through wooded areas in lively family groups.</p>
+            ${mapBlock("split-map")}
+            ${actions()}
+          </div>
+        `;
+      }
+
+      function activityFeed() {
+        return `
+          <div class="screen activity-screen">
+            <header class="activity-header">
+              <div class="activity-brand"><span>↗</span><span>Flock</span></div>
+              <button class="primary-button" data-toast="Upload opens the capture flow">＋ Log</button>
+            </header>
+            <nav class="activity-filter">
+              <button class="chip-button" style="background:#17231c;color:white;">Following</button>
+              <button class="chip-button" data-toast="Nearby filter">Near me</button>
+              <button class="chip-button" data-toast="Rare sightings filter">Rare</button>
+            </nav>
+            <article class="activity-card">
+              ${userRow()}
+              <div class="activity-summary tap" data-screen="detail">
+                <div class="eyebrow">New Sighting</div>
+                <h2>Taiwan Blue Magpie</h2>
+                <p>Yangmingshan · 8 minutes ago</p>
+              </div>
+              <div class="activity-visual tap" data-screen="detail">
+                <img class="original" src="${original}" alt="Taiwan Blue Magpie in a forest" />
+                <span class="activity-cutout-disc">
+                  <img src="${cutout}" alt="Sticker cutout of the same bird" />
+                </span>
+              </div>
+              <div class="activity-stats">
+                <div><small>Confidence</small><strong>High</strong></div>
+                <div><small>Likes</small><strong>${liked ? 25 : 24}</strong></div>
+                <div><small>Comments</small><strong>3</strong></div>
+              </div>
+              ${actions()}
+            </article>
+          </div>
+        `;
+      }
+
+      function activityDetail() {
+        return `
+          <div class="screen activity-screen" style="position:relative;">
+            <div class="activity-detail-top">
+              <button class="icon-button" data-screen="feed" aria-label="Back">←</button>
+              <button class="icon-button" data-toast="Share link copied" aria-label="Share">↗</button>
+            </div>
+            ${mapBlock("activity-detail-map")}
+            <article class="activity-detail-card">
+              ${userRow()}
+              <div class="activity-detail-intro">
+                <div class="eyebrow">High-confidence identification</div>
+                <h1>Taiwan Blue Magpie</h1>
+                <div class="scientific">Urocissa caerulea</div>
+                <button class="activity-nickname" data-toast="Nickname editor">✎ Blueberry</button>
+              </div>
+              <div class="activity-detail-grid">
+                <img class="photo" src="${original}" alt="Original Taiwan Blue Magpie photo" />
+                <div class="sticker-panel">
+                  <img src="${cutout}" alt="Sticker cutout of the bird" />
+                </div>
+              </div>
+              <p class="activity-description">A striking, long-tailed corvid found only in Taiwan, often moving through wooded areas in lively family groups.</p>
+              ${actions()}
+            </article>
+          </div>
+        `;
+      }
+
+      const renders = {
+        A: { feed: fieldFeed, detail: fieldDetail },
+        B: { feed: splitFeed, detail: splitDetail },
+        C: { feed: activityFeed, detail: activityDetail },
+      };
+
+      function updateUrl() {
+        const next = new URL(window.location.href);
+        next.searchParams.set("variant", variant);
+        next.searchParams.set("screen", screen);
+        history.replaceState({}, "", next);
+      }
+
+      function render() {
+        updateUrl();
+        document.querySelector("#app").innerHTML = `
+          <main class="prototype-shell">
+            ${renders[variant][screen]()}
+          </main>
+          <div class="prototype-switcher" aria-label="Prototype variants">
+            <button data-cycle="-1" aria-label="Previous variant">←</button>
+            <div class="switcher-copy">
+              <strong>${variant} — ${variants[variant]}</strong>
+              <small>variant=${variant} · screen=${screen} · liked=${liked}</small>
+            </div>
+            <button data-cycle="1" aria-label="Next variant">→</button>
+          </div>
+        `;
+      }
+
+      function cycleVariant(direction) {
+        const keys = Object.keys(variants);
+        const index = keys.indexOf(variant);
+        variant = keys[(index + direction + keys.length) % keys.length];
+        render();
+      }
+
+      function showToast(message) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.append(toast);
+        setTimeout(() => toast.remove(), 1850);
+      }
+
+      document.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-screen], [data-cycle], [data-action], [data-toast]");
+        if (!target) return;
+
+        if (target.dataset.screen) {
+          screen = target.dataset.screen;
+          window.scrollTo({ top: 0, behavior: "instant" });
+          render();
+          return;
+        }
+
+        if (target.dataset.cycle) {
+          cycleVariant(Number(target.dataset.cycle));
+          return;
+        }
+
+        if (target.dataset.action === "like") {
+          liked = !liked;
+          render();
+          return;
+        }
+
+        if (target.dataset.toast) {
+          showToast(target.dataset.toast);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        const tag = document.activeElement?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || document.activeElement?.isContentEditable) {
+          return;
+        }
+        if (event.key === "ArrowLeft") cycleVariant(-1);
+        if (event.key === "ArrowRight") cycleVariant(1);
+      });
+
+      render();
+    </script>
+  </body>
+</html>
